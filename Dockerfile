@@ -12,41 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.7-slim as base
+FROM registry.access.redhat.com/ubi8/python-36:1-170.1648121369 as builder
 
-FROM base as builder
+USER root
 
-RUN apt-get -qq update \
-    && apt-get install -y --no-install-recommends \
-        g++ \
-    && rm -rf /var/lib/apt/lists/*
+RUN yum install -y libstdc++-static wget make gcc-c++ && yum clean all
+
+WORKDIR /opt/app-root/src
+
+USER default
 
 # get packages
-COPY requirements.txt .
+COPY --chown=default:root requirements.txt .
+
 RUN pip install -r requirements.txt
 
-FROM base as final
-# Enable unbuffered logging
-ENV PYTHONUNBUFFERED=1
-# Enable Profiler
-ENV ENABLE_PROFILER=1
+FROM registry.access.redhat.com/ubi8/python-36:1-170.1648121369
 
-RUN apt-get -qq update \
-    && apt-get install -y --no-install-recommends \
-        wget
-
+USER root
 # Download the grpc health probe
 RUN GRPC_HEALTH_PROBE_VERSION=v0.4.6 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
 
-WORKDIR /email_server
+USER default
+
+# Enable unbuffered logging
+ENV PYTHONUNBUFFERED=1
+# Enable Profiler
+ENV ENABLE_PROFILER=1
 
 # Grab packages from builder
-COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
+COPY --from=builder /opt/app-root/lib/python3.6/ /opt/app-root/lib/python3.6/
 
 # Add the application
-COPY . .
+COPY --chown=default:root . .
 
 EXPOSE 8080
 ENTRYPOINT [ "python", "email_server.py" ]
