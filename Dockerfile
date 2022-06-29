@@ -23,9 +23,9 @@ WORKDIR /opt/app-root/src
 USER default
 
 # get packages
-COPY --chown=default:root requirements.in .
+COPY --chown=default:root requirements.txt .
 
-RUN pip install -r requirements.in
+RUN pip install -r requirements.txt
 
 FROM registry.access.redhat.com/ubi8/python-36:1-170.1648121369
 
