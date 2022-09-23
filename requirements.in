@@ -8,4 +8,4 @@ opencensus-ext-grpc==0.7.1
 python-json-logger==0.1.11
 requests==2.27.1
 urllib3==1.26.5
-protobuf==3.15.0 # transitive dependency, move when google-api is bumped safely
+protobuf==3.18.3 # transitive dependency, move when google-api is bumped safely
